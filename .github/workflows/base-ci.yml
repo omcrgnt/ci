@@ -1,0 +1,56 @@
+name: Global Quality Gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+
+      # 1. Запуск тестов (если есть таргет 'test')
+      - name: Run Tests
+        run: |
+          if task --list | grep -q "test"; then
+            task test
+          else
+            echo "No 'test' target found, skipping."
+          fi
+
+      # 2. Проверка актуальности генерации (если есть таргет 'check-diff')
+      - name: Check Generation Diff
+        run: |
+          if task --list | grep -q "check-diff"; then
+            task check-diff
+          else
+            echo "No 'check-diff' target found, skipping."
+          fi
+
+      # 3. Линтер (если есть таргет 'lint')
+      - name: Run Linter
+        run: |
+          if task --list | grep -q "lint"; then
+            task lint
+          else
+            echo "No 'lint' target found, skipping."
+          fi
+
+      # 4. Buf Lint (если есть buf.yaml в корне)
+      - name: Buf Lint
+        uses: bufbuild/buf-setup-action@v1
+        if: hashFiles('buf.yaml') != ''
+        with:
+          github_token: ${{ github.token }}
+      - name: Buf Lint Execute
+        if: hashFiles('buf.yaml') != ''
+        run: buf lint
