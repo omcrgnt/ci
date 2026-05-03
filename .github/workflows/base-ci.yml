@@ -14,6 +14,7 @@ jobs:
         uses: arduino/setup-task@v2
         with:
           version: 3.x
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       # 1. Запуск тестов (если есть таргет 'test')
       - name: Run Tests
@@ -46,6 +47,8 @@ jobs:
       - name: Buf Lint
         uses: bufbuild/buf-setup-action@v1
         if: hashFiles('buf.yaml') != ''
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
         # Токен не нужен для обычного линта, если репо публичный, 
         # но для приватных зависимостей может потребоваться
       - name: Buf Lint Execute
