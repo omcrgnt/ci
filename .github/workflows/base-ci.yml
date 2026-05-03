@@ -1,10 +1,7 @@
 name: Global Quality Gate
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_call: # Позволяет вызывать этот файл из других репозиториев
 
 jobs:
   validate:
@@ -49,8 +46,8 @@ jobs:
       - name: Buf Lint
         uses: bufbuild/buf-setup-action@v1
         if: hashFiles('buf.yaml') != ''
-        with:
-          github_token: ${{ github.token }}
+        # Токен не нужен для обычного линта, если репо публичный, 
+        # но для приватных зависимостей может потребоваться
       - name: Buf Lint Execute
         if: hashFiles('buf.yaml') != ''
         run: buf lint
